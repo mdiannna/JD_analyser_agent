@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View database content - AI Job Description Assistant</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+    <style>
+        #chatMessages {
+          overflow-y: scroll;
+          max-height: 40vh;
+        }
+    </style>
+</head>
+<body>
+   <div id="app">
+    <section class="container px-auto">
+      <h1 class="text-center pt-3 pb-3">Job Description Analyser - view all texts from the database </h1>
+      <div v-for="text in texts">
+        <p>[[text]]</p>
+      </div>
+      <p v-if="texts">No documents found in the vector store.</p>
+      </section>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.11.0/axios.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+    
+    <script>
+      const { createApp, ref } = Vue
+
+      createApp({
+          delimiters: ['[[', ']]'],  // <-- change Vue delimiters here
+          data() {
+            return {
+                texts: {{documents | safe}}
+            }
+          },
+          methods: {
+        },
+        mounted() {
+        }
+      }).mount('#app')
+
+    </script>
+</body>
+</html>

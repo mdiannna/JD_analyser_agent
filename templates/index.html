@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Job Description Assistant</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+    <style>
+        #chatMessages {
+          overflow-y: scroll;
+          max-height: 40vh;
+        }
+    </style>
+</head>
+<body>
+   <div id="app">
+    <section class="container px-auto">
+      <h1 class="text-center pt-3 pb-3">Job Description Analyser</h1>
+
+    <label>Please upload the pdf file with the job description:</label>
+    <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" id="fileInput" @change="onFileChange" required/>
+        <button type="button" class="btn btn-primary ms-1" @click="processDocument()" v-if="selectedFile"> Upload and process</button> 
+    </form>
+
+    <div class="text-primary" v-if="isProcessing">Processing...</div>
+    <div><p class="text-success">[[processingStatus]]</p></div>
+    </section>
+
+    <section id="chatSection">
+        <div class="container py-5">
+      
+          <div class="row d-flex justify-content-center">
+            <div class="col-md-12 col-lg-8 col-xl-8">
+      
+              <div class="card" id="chat1" style="border-radius: 15px;">
+                <div
+                  class="card-header d-flex justify-content-between align-items-center p-3 bg-info text-white border-bottom-0"
+                  style="border-top-left-radius: 15px; border-top-right-radius: 15px;">
+                  <i class="fas fa-angle-left"></i>
+                  <p class="mb-0 fw-bold">Live chat</p>
+                  <i class="fas fa-times"></i>
+                </div>
+                <div class="card-body">
+                  <div id="chatMessages">      
+                    <div class="d-flex flex-row justify-content-start mb-4">
+                      <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava1-bg.webp"
+                        alt="avatar 1" style="width: 45px; height: 100%;">
+                      <div class="p-3 ms-3" style="border-radius: 15px; background-color: rgba(57, 192, 237,.2);">
+                        <p class="small mb-0">Hello. I am the GenAI Job Description Analyser. <br>Please upload your job description file above and let's talk</p>
+                      </div>
+                    </div>
+        
+                    <!-- <div class="d-flex flex-row justify-content-end mb-4">
+                      <div class="p-3 me-3 border bg-body-tertiary" style="border-radius: 15px;">
+                        <p class="small mb-0">Thank you, I really like your product.</p>
+                      </div>
+                      <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava2-bg.webp"
+                        alt="avatar 1" style="width: 45px; height: 100%;">
+                    </div>
+         -->
+<!--         
+                  <div class="d-flex flex-row justify-content-start mb-4">
+                    <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava1-bg.webp"
+                      alt="avatar 1" style="width: 45px; height: 100%;">
+                    <div class="p-3 ms-3" style="border-radius: 15px; background-color: rgba(57, 192, 237,.2);">
+                      <p class="small mb-0">...</p>
+                    </div>
+                  </div>
+
+                  <div class="d-flex flex-row justify-content-end mb-4">
+                    <div class="p-3 me-3 border bg-body-tertiary" style="border-radius: 15px;">
+                      <p class="small mb-0">Thank you, I really like your product.</p>
+                    </div>
+                    <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava2-bg.webp"
+                      alt="avatar 1" style="width: 45px; height: 100%;">
+                  </div>-->
+                </div> 
+
+      
+                  <div data-mdb-input-init class="form-outline">
+                    <textarea class="form-control bg-body-tertiary" id="textAreaExample" rows="4" v-model="chatMessage"></textarea>
+                    <label class="form-label" for="textAreaExample">Type your message</label>
+                    <button class="btn btn-primary" @click="sendToChat()">send</button>
+                  </div>
+      
+                </div>
+              </div>
+      
+            </div>
+          </div>
+      
+        </div>
+      </section>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.11.0/axios.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+    
+    <script>
+      const { createApp, ref } = Vue
+
+      createApp({
+          delimiters: ['[[', ']]'],  // <-- change Vue delimiters here
+          data() {
+            return {
+              isProcessing: false,
+              selectedFile: null,
+              processingStatus: '',
+              chatMessage: '',
+            }
+          },
+          methods: {
+            onFileChange(event) {
+              this.selectedFile = event.target.files[0];
+            },
+            async uploadFile() {
+              if (!this.selectedFile) {
+                alert("Please select a file first.");
+                return;
+              }
+
+              // Create a FormData object
+              const formData = new FormData();
+              formData.append("file", this.selectedFile);
+
+              try {
+                const response = await axios.post("http://127.0.0.1:8000/uploadfile/", formData, {
+                  headers: {
+                    "Content-Type": "multipart/form-data",
+                  },
+                });
+                console.log("Server response:", response.data);
+              } catch (error) {
+                console.error("Upload failed:", error);
+              }
+            },  
+            async processPdf() {
+              try {
+                const response = await axios.post("http://127.0.0.1:8000/processpdf/");
+                console.log("Server response:", response.data);
+                if(response.data["status"]=="success") {
+                  this.isProcessing = false;
+                  this.processingStatus = "Processing pdf file finished succesfully. Now you can start chatting with the AI Assistant about it."
+                  this.selectedFile = null
+                } else {
+                  this.processingStatus = "Error processing document. Please try again."
+                }
+              } catch (error) {
+                console.error("Pdf processing failed:", error);
+                this.processingStatus = "Error processing document. Please try again."
+              }
+            },
+            processDocument() {
+              this.isProcessing = true;
+              this.uploadFile()
+              this.processPdf()
+            },          
+            async sendToChat() {
+              const message = this.chatMessage;
+              this.chatMessage = ""
+
+              let html_el = `
+              <div class="d-flex flex-row justify-content-end mb-4">
+                        <div class="p-3 me-3 border bg-body-tertiary" style="border-radius: 15px;">
+                          <p class="small mb-0">${message}</p>
+                        </div>
+                        <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava2-bg.webp"
+                          alt="avatar 1" style="width: 45px; height: 100%;">
+                      </div>
+              `;
+
+              let chat = document.getElementById("chatMessages");
+              console.log("chat:", chat)
+              chat.insertAdjacentHTML("beforeend", html_el);
+              // Option 2: directly manipulating HTML
+              // chat.innerHTML += html_el;
+
+              // send the message to the agent:
+              await this.sendMsgToAgent(message)
+            },
+            async sendMsgToAgent(message) {
+              try {
+                const formData = new FormData();
+                formData.append("message", message)
+                const response = await axios.post("http://127.0.0.1:8000/ask", formData);
+                console.log("Server response:", response.data);
+                if(response.data["status"]=="success") {
+                  this.addResponseToChat(response.data["answer"])
+                }else {
+                  alert("Error reaching the GenAI Assistant")
+                }
+
+              } catch (error) {
+                console.error("Error:", error);
+              }
+            },
+            addResponseToChat(message) {
+              let html_el = `
+              <div class="d-flex flex-row justify-content-start mb-4">
+                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava1-bg.webp"
+                  alt="avatar 1" style="width: 45px; height: 100%;">
+                <div class="p-3 ms-3" style="border-radius: 15px; background-color: rgba(57, 192, 237,.2);">
+                  <p class="small mb-0">${message}</p>
+                </div>
+              </div>
+              `;
+
+              let chat = document.getElementById("chatMessages");
+              console.log("chat:", chat)
+              chat.insertAdjacentHTML("beforeend", html_el);
+              // Option 2: directly manipulating HTML
+              // chat.innerHTML += html_el;
+            }
+          
+        }
+      }).mount('#app')
+
+            // const form = document.getElementById('uploadForm');
+            // form.addEventListener('submit', function () {
+            // });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+langchain
+fastapi
+uvicorn
+langchain[google-genai]
+langchain-community
+langgraph
