@@ -14,7 +14,8 @@ def get_weather(city: str) -> str:
 
 
 def make_answer_about_job_description(llm):
-    """Factory that returns a tool bound to the given LLM."""
+    """Based on the job description, call the llm and answer questions"""
+    print("CALLING THE JOB DESCRIPTION TOOL")
 
     def answer_about_job_description(question: str, info_abt_job: str) -> str:
         """Based on the job description, call the llm and answer questions."""
@@ -22,3 +23,11 @@ def make_answer_about_job_description(llm):
         return llm.invoke(prompt).content
 
     return answer_about_job_description
+
+def check_if_question_about_job_description(question: str) -> bool:
+    """Check if the question is about the job description."""
+    print("CALLING THE CHECK IF JOB DESCRIPTION TOOL")
+
+    keywords = ['job', 'position', 'role', 'responsibilities', 'require'
+    'ments', 'qualifications', 'skills']
+    return any(keyword in question.lower() for keyword in keywords)
