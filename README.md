@@ -1,7 +1,7 @@
 # Job-description analyser
 
 A simple GenAI-based assistant for a PDF job description analysis, offering the chat possibility.
-Built by running a LLM with langchain and FastAPI.
+Built by running a LLM with langchain, langgraph and FastAPI.
 
 Step 1: Setting Up the Environment
 First, install the necessary dependencies.
