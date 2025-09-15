@@ -16,3 +16,6 @@ You will be asked to introduce the Gemini API key
 
 -----------
 <!-- pip install -qU "langchain[anthropic]" -->
+
+### Screenshots:
+![Screenshot 1](screenshots/screenshot1.png)
