@@ -18,6 +18,8 @@
     <section class="container px-auto">
       <h1 class="text-center pt-3 pb-3">Job Description Analyser</h1>
 
+      <p>Hello, {{user.username}}!</p>
+      
     <label>Please upload the pdf file with the job description:</label>
     <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
         <input type="file" name="file" id="fileInput" @change="onFileChange" required/>

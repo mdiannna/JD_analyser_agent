@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DashboardAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  </head>
+  <body>
+    <div id="app" class="container">
+        <div class="card shadow-lg border-0 mx-auto" style="max-width: 420px; border-radius: 1rem;">
+          <div class="card-body p-4">
+            <div class="text-center mb-4">
+              <h2 class="fw-bold text-primary">AI Job Description Assistant</h2>
+              <p class="text-muted mb-0">Welcome back! Please login.</p>
+            </div>
+  
+            <form @submit.prevent="login" class="needs-validation" novalidate>
+              <div class="mb-3">
+                <label for="username" class="form-label fw-semibold">Username</label>
+                <input 
+                  id="username" 
+                  type="text" 
+                  class="form-control form-control-lg" 
+                  v-model="loginForm.username" 
+                  placeholder="Enter your username" 
+                  required
+                >
+              </div>
+  
+              <div class="mb-3">
+                <label for="password" class="form-label fw-semibold">Password</label>
+                <input 
+                  id="password" 
+                  type="password" 
+                  class="form-control form-control-lg" 
+                  v-model="loginForm.password" 
+                  placeholder="Enter your password" 
+                  required
+                >
+              </div>
+  
+              <button 
+                type="submit" 
+                class="btn btn-primary btn-lg w-100" 
+                :disabled="isLoading"
+              >
+                <span v-if="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                [[ isLoading ? 'Logging in...' : 'Login' ]]
+              </button>
+  
+              <div v-if="errorMessage" class="alert alert-danger mt-3 py-2 text-center">
+                [[ errorMessage ]]
+              </div>
+              <div v-if="successMessage" class="alert alert-success mt-3 py-2 text-center">
+                [[ successMessage ]]
+              </div>
+            </form>
+  
+            <div class="mt-4 small text-muted text-center">
+              <p class="mb-1 fw-semibold">Demo credentials</p>
+              <div class="bg-light p-2 rounded border text-start">
+                <div>alice / secretpassword</div>
+                <div>bob / secretpassword</div>
+                <div>charlie / secretpassword</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <script>
+        const { createApp, ref, onMounted } = Vue
+      createApp({
+        delimiters: ['[[', ']]'],
+        setup() {
+        //   const apiStatus = ref('loading...')
+          const isAuthenticated = ref(false)
+          const currentUser = ref(null)
+          const isLoading = ref(false)
+          const errorMessage = ref('')
+          const successMessage = ref('')
+          const loginForm = ref({
+            username: '',
+            password: ''
+          })
+          // Check if user is already logged in
+          const checkAuthStatus = () => {
+            const token = localStorage.getItem('access_token')
+            if (token) {
+              // Verify token is still valid by calling /users/me
+              fetch('/users/me', {
+                headers: {
+                  'Authorization': `Bearer ${token}`
+                }
+              })
+              .then(response => {
+                if (response.ok) {
+                  return response.json()
+                } else {
+                  localStorage.removeItem('access_token')
+                  return null
+                }
+              })
+              .then(user => {
+                if (user) {
+                  isAuthenticated.value = true
+                  currentUser.value = user
+                }
+              })
+              .catch(() => {
+                localStorage.removeItem('access_token')
+              })
+            }
+          }
+          
+          const login = async () => {
+            isLoading.value = true
+            errorMessage.value = ''
+            successMessage.value = ''
+            
+            try {
+              const formData = new FormData()
+              formData.append('username', loginForm.value.username)
+              formData.append('password', loginForm.value.password)
+              
+              const response = await fetch('/token', {
+                method: 'POST',
+                body: formData
+              })
+              
+              if (response.ok) {
+                const data = await response.json()
+                localStorage.setItem('access_token', data.access_token)
+                
+                // Get user info
+                const userResponse = await fetch('/users/me', {
+                  headers: {
+                    'Authorization': `Bearer ${data.access_token}`
+                  }
+                })
+                
+                if (userResponse.ok) {
+                  const user = await userResponse.json()
+                  currentUser.value = user
+                  isAuthenticated.value = true
+                  successMessage.value = 'Login successful!'
+                  loginForm.value = { username: '', password: '' }
+                  // redirect to the index page
+                    window.location.href = '/'
+                }
+              } else {
+                const error = await response.json()
+                errorMessage.value = error.detail || 'Login failed'
+              }
+            } catch (error) {
+              errorMessage.value = 'Network error. Please try again.'
+            } finally {
+              isLoading.value = false
+            }
+          }
+          
+          const logout = () => {
+            localStorage.removeItem('access_token')
+            isAuthenticated.value = false
+            currentUser.value = null
+            errorMessage.value = ''
+            successMessage.value = ''
+          }
+          
+          onMounted(async () => {
+            // try {
+            //   const res = await fetch('/health')
+            //   const data = await res.json()
+            //   apiStatus.value = data.status || 'unknown'
+            // } catch (e) {
+            //   apiStatus.value = 'error'
+            // }
+            
+            checkAuthStatus()
+          })
+          
+          return { 
+            // apiStatus, 
+            isAuthenticated, 
+            currentUser, 
+            isLoading, 
+            errorMessage, 
+            successMessage, 
+            loginForm, 
+            login, 
+            logout 
+          }
+        },
+        data() {
+          return {
+          }
+        }
+    }).mount('#app')
+    </script>
+    </body>
+</html>
